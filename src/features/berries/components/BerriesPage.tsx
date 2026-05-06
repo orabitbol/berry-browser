@@ -1,4 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded'
+import NightlightRoundedIcon from '@mui/icons-material/NightlightRounded'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loadBerriesForFirmness, selectFirmnessEntry } from '../berriesSlice'
 import { FirmnessSidebar } from './FirmnessSidebar'
@@ -13,7 +15,6 @@ import {
   PageHeader,
   PageTitleGroup,
   ToggleWrapper,
-  ToggleLabel,
   DarkModeToggle,
   ToggleThumb,
 } from '../styles/BerriesPage.style'
@@ -66,7 +67,6 @@ export function BerriesPage({ colorMode, toggleColorMode }: Props) {
               <PageSubtitle>Browse berries from the PokéAPI</PageSubtitle>
             </PageTitleGroup>
             <ToggleWrapper>
-              <ToggleLabel>{colorMode === 'dark' ? 'Dark' : 'Light'}</ToggleLabel>
               <DarkModeToggle
                 isDark={colorMode === 'dark'}
                 role="switch"
@@ -74,7 +74,10 @@ export function BerriesPage({ colorMode, toggleColorMode }: Props) {
                 aria-label={colorMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
                 onClick={toggleColorMode}
               >
-                <ToggleThumb isDark={colorMode === 'dark'} />
+                <ToggleThumb isDark={colorMode === 'dark'}>
+                  <WbSunnyRoundedIcon />
+                  <NightlightRoundedIcon />
+                </ToggleThumb>
               </DarkModeToggle>
             </ToggleWrapper>
           </PageHeader>

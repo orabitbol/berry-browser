@@ -55,36 +55,24 @@ export const PageSubtitle = styled(Typography)(({ theme }) => ({
 }))
 
 export const ToggleWrapper = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: 10,
   flexShrink: 0,
   paddingTop: 4,
 })
-
-export const ToggleLabel = styled(Typography)(({ theme }) => ({
-  fontSize: '0.72rem',
-  fontWeight: 500,
-  color: theme.palette.text.secondary,
-  userSelect: 'none',
-  letterSpacing: '0.04em',
-  textTransform: 'uppercase',
-}))
 
 export const DarkModeToggle = styled('button', {
   shouldForwardProp: (prop) => prop !== 'isDark',
 })<{ isDark: boolean }>(({ isDark, theme }) => ({
   position: 'relative',
-  width: 48,
-  height: 26,
-  borderRadius: 13,
+  width: 52,
+  height: 28,
+  borderRadius: 14,
   border: 'none',
   cursor: 'pointer',
   padding: 0,
   flexShrink: 0,
-  backgroundColor: isDark ? '#5b21b6' : '#ddd6fe',
+  backgroundColor: isDark ? theme.palette.primary.dark : '#ddd6fe',
   boxShadow: isDark
-    ? '0 0 0 1px rgba(124,58,237,0.6), 0 0 16px rgba(109,40,217,0.4)'
+    ? `0 0 0 1px ${theme.palette.primary.main}99, 0 0 14px ${theme.palette.primary.main}66`
     : 'inset 0 1px 3px rgba(0,0,0,0.10)',
   transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
   '&:focus-visible': {
@@ -95,17 +83,34 @@ export const DarkModeToggle = styled('button', {
 
 export const ToggleThumb = styled('span', {
   shouldForwardProp: (prop) => prop !== 'isDark',
-})<{ isDark: boolean }>(({ isDark }) => ({
+})<{ isDark: boolean }>(({ isDark, theme }) => ({
   position: 'absolute',
   top: 3,
-  left: isDark ? 25 : 3,
-  width: 20,
-  height: 20,
+  left: isDark ? 27 : 3,
+  width: 22,
+  height: 22,
   borderRadius: '50%',
   backgroundColor: '#ffffff',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.22)',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
   transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  display: 'block',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  '& svg': {
+    fontSize: 13,
+    position: 'absolute',
+    transition: 'opacity 0.25s ease, transform 0.25s ease',
+  },
+  '& svg:first-of-type': {
+    color: '#f59e0b',
+    opacity: isDark ? 0 : 1,
+    transform: isDark ? 'rotate(90deg) scale(0.3)' : 'rotate(0deg) scale(1)',
+  },
+  '& svg:last-of-type': {
+    color: theme.palette.primary.main,
+    opacity: isDark ? 1 : 0,
+    transform: isDark ? 'rotate(0deg) scale(1)' : 'rotate(-90deg) scale(0.3)',
+  },
 }))
 
 export const ContentCard = styled(Box)(({ theme }) => ({
