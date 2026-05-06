@@ -1,24 +1,41 @@
 import axios from 'axios'
-import type { BerryListResponse, BerryDetail } from '../types'
+import type { BerryFirmnessResponse, BerryDetail, ItemDetail, BerryListItem } from '../types'
+import type { FirmnessLevel } from '../constants'
 
 const BASE_URL = 'https://pokeapi.co/api/v2'
 
-const mapBerryDetail = (detail: BerryDetail) => ({
+const mapDetail = (detail: BerryDetail): BerryListItem => ({
   id: detail.id,
   name: detail.name,
   firmness: detail.firmness.name,
-  flavors: detail.flavors
-    .filter((f) => f.potency > 0)
-    .map((f) => f.flavor.name),
+  flavors: detail.flavors.filter((f) => f.potency > 0),
+  growthTime: detail.growth_time,
+  smoothness: detail.smoothness,
+  size: detail.size,
+  soilDryness: detail.soil_dryness,
+  naturalGiftPower: detail.natural_gift_power,
+  naturalGiftType: detail.natural_gift_type.name,
+  itemUrl: detail.item.url,
 })
 
-export const fetchBerries = async () => {
-  const list = await axios.get<BerryListResponse>(`${BASE_URL}/berry?limit=64`)
-  const requests = list.data.results.map((entry) =>
-    axios.get<BerryDetail>(entry.url)
+export const fetchBerriesByFirmness = async (firmness: FirmnessLevel): Promise<BerryListItem[]> => {
+  const { data } = await axios.get<BerryFirmnessResponse>(`${BASE_URL}/berry-firmness/${firmness}`)
+
+  const items = await Promise.all(
+    data.berries.map(async (entry) => {
+      const { data: detail } = await axios.get<BerryDetail>(entry.url)
+      return mapDetail(detail)
+    })
   )
-  const responses = await Promise.all(requests)
-  return responses
-    .map((r) => mapBerryDetail(r.data))
-    .sort((a, b) => a.name.localeCompare(b.name))
+
+  return items.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+export const fetchBerrySprite = async (itemUrl: string): Promise<string | null> => {
+  try {
+    const { data } = await axios.get<ItemDetail>(itemUrl)
+    return data.sprites.default
+  } catch {
+    return null
+  }
 }

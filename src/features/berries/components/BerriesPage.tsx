@@ -1,65 +1,99 @@
-import { useState } from 'react'
-import { CircularProgress, Typography, Button } from '@mui/material'
-import { useBerries } from '../hooks/useBerries'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { loadBerriesForFirmness, selectFirmnessEntry } from '../berriesSlice'
 import { FirmnessSidebar } from './FirmnessSidebar'
 import { BerryList } from './BerryList'
 import {
   PageWrapper,
-  FeedbackStack,
   ContentWrapper,
   ContentCard,
   PageTitle,
+  TitleAccent,
+  PageSubtitle,
+  PageHeader,
+  PageTitleGroup,
+  ToggleWrapper,
+  ToggleLabel,
+  DarkModeToggle,
+  ToggleThumb,
 } from '../styles/BerriesPage.style'
+import type { FirmnessLevel } from '../constants'
+import type { BerryListItem } from '../types'
+import { BerryAssistant } from './BerryAssistant/BerryAssistant'
 
-export function BerriesPage() {
-  const { berries, loading, error, load } = useBerries()
-  const [selectedFirmness, setSelectedFirmness] = useState<string | null>(null)
-  const [search, setSearch] = useState('')
+const BerryDetailsDrawer = lazy(() =>
+  import('./BerryDetailsDrawer').then((m) => ({ default: m.BerryDetailsDrawer }))
+)
 
-  const visibleBerries = berries
-    .filter((b) => !selectedFirmness || b.firmness === selectedFirmness)
-    .filter((b) => b.name.toLowerCase().includes(search.toLowerCase()))
+type Props = {
+  colorMode: 'light' | 'dark'
+  toggleColorMode: () => void
+}
 
-  if (loading) {
-    return (
-      <PageWrapper>
-        <FeedbackStack direction="column" spacing={2}>
-          <CircularProgress color="secondary" />
-          <Typography color="text.secondary">Loading berries…</Typography>
-        </FeedbackStack>
-      </PageWrapper>
-    )
-  }
+export function BerriesPage({ colorMode, toggleColorMode }: Props) {
+  const dispatch = useAppDispatch()
 
-  if (error) {
-    return (
-      <PageWrapper>
-        <FeedbackStack direction="column" spacing={2}>
-          <Typography color="error">Failed to load berries.</Typography>
-          <Button variant="outlined" color="secondary" onClick={load}>
-            Retry
-          </Button>
-        </FeedbackStack>
-      </PageWrapper>
-    )
+  const [selectedFirmness, setSelectedFirmness] = useState<FirmnessLevel>('soft')
+  const [selectedBerryId, setSelectedBerryId] = useState<number | null>(null)
+
+  useEffect(() => {
+    dispatch(loadBerriesForFirmness(selectedFirmness))
+  }, [selectedFirmness, dispatch])
+
+  const list = useAppSelector(
+    (state) => selectFirmnessEntry(selectedFirmness)(state)?.data ?? []
+  )
+
+  const selectedBerry = useMemo(
+    (): BerryListItem | null =>
+      selectedBerryId != null ? (list.find((b) => b.id === selectedBerryId) ?? null) : null,
+    [list, selectedBerryId]
+  )
+
+  const handleFirmnessSelect = (firmness: FirmnessLevel) => {
+    setSelectedFirmness(firmness)
+    setSelectedBerryId(null)
   }
 
   return (
-    <PageWrapper>
-      <ContentWrapper>
-        <PageTitle>Berry Browser</PageTitle>
-        <ContentCard>
-          <FirmnessSidebar
-            selected={selectedFirmness}
-            onSelect={setSelectedFirmness}
+    <>
+      <PageWrapper>
+        <ContentWrapper>
+          <PageHeader>
+            <PageTitleGroup>
+              <PageTitle>Berry Browser</PageTitle>
+              <TitleAccent />
+              <PageSubtitle>Browse berries from the PokéAPI</PageSubtitle>
+            </PageTitleGroup>
+            <ToggleWrapper>
+              <ToggleLabel>{colorMode === 'dark' ? 'Dark' : 'Light'}</ToggleLabel>
+              <DarkModeToggle
+                isDark={colorMode === 'dark'}
+                role="switch"
+                aria-checked={colorMode === 'dark'}
+                aria-label={colorMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                onClick={toggleColorMode}
+              >
+                <ToggleThumb isDark={colorMode === 'dark'} />
+              </DarkModeToggle>
+            </ToggleWrapper>
+          </PageHeader>
+
+          <ContentCard>
+            <FirmnessSidebar selected={selectedFirmness} onSelect={handleFirmnessSelect} />
+            <BerryList firmness={selectedFirmness} onBerrySelect={setSelectedBerryId} />
+          </ContentCard>
+        </ContentWrapper>
+
+        <Suspense fallback={null}>
+          <BerryDetailsDrawer
+            berry={selectedBerry}
+            onClose={() => setSelectedBerryId(null)}
           />
-          <BerryList
-            berries={visibleBerries}
-            search={search}
-            onSearchChange={setSearch}
-          />
-        </ContentCard>
-      </ContentWrapper>
-    </PageWrapper>
+        </Suspense>
+      </PageWrapper>
+
+      <BerryAssistant />
+    </>
   )
 }

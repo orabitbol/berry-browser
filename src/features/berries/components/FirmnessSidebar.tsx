@@ -1,38 +1,39 @@
-import { FIRMNESS_LEVELS, FIRMNESS_COLORS } from '../constants'
+import { FIRMNESS_LEVELS, FIRMNESS_COLORS, formatFirmness } from '../constants'
+import type { FirmnessLevel } from '../constants'
 import {
   SidebarWrapper,
   SidebarTitle,
+  ActiveIndicator,
   FirmnessItem,
   FirmnessLabel,
   FirmnessDot,
 } from '../styles/FirmnessSidebar.style'
 
 type Props = {
-  selected: string | null
-  onSelect: (firmness: string | null) => void
+  selected: FirmnessLevel
+  onSelect: (firmness: FirmnessLevel) => void
 }
 
 export function FirmnessSidebar({ selected, onSelect }: Props) {
+  const activeIndex = FIRMNESS_LEVELS.indexOf(selected)
+
   return (
     <SidebarWrapper>
       <SidebarTitle>Firmness</SidebarTitle>
-
-      <FirmnessItem
-        selected={selected === null}
-        onClick={() => onSelect(null)}
-      >
-        <FirmnessDot dotcolor="#bdbdbd" />
-        <FirmnessLabel selected={selected === null}>All</FirmnessLabel>
-      </FirmnessItem>
+      <ActiveIndicator itemIndex={activeIndex} aria-hidden />
 
       {FIRMNESS_LEVELS.map((level) => (
         <FirmnessItem
           key={level}
           selected={selected === level}
-          onClick={() => onSelect(level === selected ? null : level)}
+          onClick={() => onSelect(level)}
+          aria-pressed={selected === level}
         >
-          <FirmnessDot dotcolor={FIRMNESS_COLORS[level]} />
-          <FirmnessLabel selected={selected === level}>{level}</FirmnessLabel>
+          <FirmnessDot
+            dotColor={FIRMNESS_COLORS[level]}
+            selected={selected === level}
+          />
+          <FirmnessLabel selected={selected === level}>{formatFirmness(level)}</FirmnessLabel>
         </FirmnessItem>
       ))}
     </SidebarWrapper>
